@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <title>YT2MP3 Magic</title>
+</head>
+<body>
+    <div class="top-container">
+        <form action="/convert-mp3" method = "POST" id="form">
+            <h1><i class="fa-brands fa-youtube"></i>YT2MP3</h1>
+            <h4>Enter Video url</h4>
+            <div>
+                <input type="text" name="videoID" placeholder="Video goes here"><button id="convert-btn">Convert</button>
+            </div>
+        </form>
+    </div>
+    <div class="bottom-container">
+        <% if(typeof success != "undefined" && success ) { %>
+            <div class="success">
+                <p><%= song_title %></p>
+                <a href="<%= song_link %>"><button id="download-btn">Download</button></a>
+            </div>
+            
+        <% } else if(typeof success != "undefined" && !success ) { %>
+            <div class="errors">
+                <p><%= message %></p>
+            </div>
+        <% } %>
+    </div>
+
+</body>
+</html>
