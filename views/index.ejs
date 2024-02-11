@@ -12,6 +12,7 @@
 <body>
     <div class="top-container">
         <form action="/convert-mp3" method = "POST" id="form">
+            <p>by  <a href="https://www.linkedin.com/in/sarthak-sundriyal-b622b022a/">sarthakvs</p></a>
             <h1><i class="fa-brands fa-youtube"></i>Youtube to MP3 Magic</h1>
             <h4>Enter Video url</h4>
             <div>
@@ -25,7 +26,6 @@
                 <h3><b><p><%= song_title %></p></b></h3>
                 <b><a href="<%= song_link %>"><button id="download-btn">Download</button></a></b>
             </div>
-            
         <% } else if(typeof success != "undefined" && !success ) { %>
             <div class="errors">
                 <p><%= message %></p>
