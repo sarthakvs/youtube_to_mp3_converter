@@ -17,11 +17,12 @@ app.get('/', (req, res) => {
     res.render("index");
 });
 app.post('/convert-mp3', async (req, res) => {
-    const videoID = req.body.videoID;
-    if(videoID==undefined || videoID==null || videoID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
+    const url = req.body.videoID;
+    const uniqueID = (url.match(/[?&]v=([^&]*)/) || [, null])[1];
+    if(uniqueID==undefined || uniqueID==null || uniqueID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
     else{
         
-        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${videoID}`,{
+        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
             "method" : "GET",
             "headers": {
                 "X-RapidAPI-Key" : process.env.API_KEY,

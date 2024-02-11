@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
-
+ @import url('https://fonts.cdnfonts.com/css/times-new-roman');
 *{
   padding: 0;
   margin: 0;
@@ -92,6 +92,8 @@ body{
   flex-direction: column;
   gap: 10px;
   color: black;
+  font-family: 'Times New Roman', sans-serif;
+                                                
 }
 
 #download-btn{
