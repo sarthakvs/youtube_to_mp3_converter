@@ -1,5 +1,5 @@
 # Youtube to MP3 Converter
-![image](https://github.com/sarthakvs/Youtube-to-mp3-converter/assets/98168713/47e266f3-2201-4774-a9f8-b520e3694d0b)
+![image](https://github.com/sarthakvs/Youtube-to-mp3-converter/assets/98168713/21cce579-a568-4fcb-aa05-933ce2b609cb)
 Enter the URL of the YouTube video you want to convert, and the application will extract the audio track and provide it as a downloadable MP3 file.
 
 ## Usage
