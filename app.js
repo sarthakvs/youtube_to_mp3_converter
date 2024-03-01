@@ -18,10 +18,14 @@ app.get('/', (req, res) => {
 });
 app.post('/convert-mp3', async (req, res) => {
     const url = req.body.videoID;
-    const uniqueID = (url.match(/[?&]v=([^&]*)/) || [, null])[1];
+    let uniqueID;
+    if (url.includes('youtu.be')) {
+    uniqueID = (url.match(/youtu\.be\/([^?&]+)/) || [, null])[1];
+    } else {
+        uniqueID = (url.match(/[?&]v=([^&]*)/) || [, null])[1];
+    }
     if(uniqueID==undefined || uniqueID==null || uniqueID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
     else{
-        
         const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
             "method" : "GET",
             "headers": {
