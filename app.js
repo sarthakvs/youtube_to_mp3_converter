@@ -26,14 +26,15 @@ app.post('/convert-mp3', async (req, res) => {
     }
     if(uniqueID==undefined || uniqueID==null || uniqueID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
     else{
-        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
+        const fetchAPI = await fetch(`https://youtube-mp3-download1.p.rapidapi.com/dl?id=${uniqueID}`,{
             "method" : "GET",
             "headers": {
-                "X-RapidAPI-Key" : process.env.API_KEY,
-                "X-RapidAPI-Host" : process.env.API_HOST
+                "x-rapidapi-key" : process.env.API_KEY,
+                "x-rapidapi-host" : process.env.API_HOST
             }
         });
         const response = await fetchAPI.json();
+        console.log(response);
         if(response.status == "ok") return res.render("index",{success:true,song_title: response.title,song_link:response.link});
         else{
             return res.render("index",{success:false,message:response.msg})
