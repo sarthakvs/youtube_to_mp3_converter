@@ -26,7 +26,7 @@ app.post('/convert-mp3', async (req, res) => {
     }
     if(uniqueID==undefined || uniqueID==null || uniqueID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
     else{
-        const fetchAPI = await fetch(`https://youtube-mp3-download1.p.rapidapi.com/dl?id=${uniqueID}`,{
+        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
             "method" : "GET",
             "headers": {
                 "x-rapidapi-key" : process.env.API_KEY,
