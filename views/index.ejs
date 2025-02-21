@@ -25,21 +25,12 @@
             <h1><i class="fa-brands fa-youtube"></i>Youtube to MP3 Magic</h1>
             <h4>Enter Video url</h4>
             <div>
-                <input type="text" name="videoID" placeholder="Video goes here"><button id="convert-btn">Convert</button>
+                <input type="text" name="url" placeholder="Video goes here"><button type="submit" id="convert-btn">Click here to Download!</button>
+            </div>
+            <div>
+                <p><b> New website with MP4-download and many other options coming soon.😊 Stay tuned! Also wait a few seconds File will get downloaded automatically on your device.(No more redirects)</b> </p>
             </div>
         </form>
-    </div>
-    <div class="bottom-container">
-        <% if(typeof success != "undefined" && success ) { %>
-            <div class="success">
-                <h3><b><p><%= song_title %></p></b></h3>
-                <b><a href="<%= song_link %>"><button id="download-btn">Click here to Download!</button></a></b>
-            </div>
-        <% } else if(typeof success != "undefined" && !success ) { %>
-            <div class="errors">
-                <p><%= message %></p>
-            </div>
-        <% } %>
     </div>
 
 </body>

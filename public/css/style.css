@@ -12,7 +12,7 @@ body{
 }
 
 .top-container{
-  height: 40vh;
+  height: 50vh;
   background-color: red;
 }
 
@@ -83,17 +83,6 @@ body{
   color: red;
   background-color: #ffe6e6;
   border: 1px solid red;
-}
-
-.success{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 10px;
-  color: black;
-  font-family: 'Times New Roman', sans-serif;
-                                                
 }
 
 #download-btn{
