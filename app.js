@@ -1,57 +1,68 @@
-const express = require('express');
-const fetch = require('node-fetch');
-require('dotenv').config();
-
+import express from 'express';
+import ytDlp from 'yt-dlp-exec'; 
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
-
-//parse html data for POST requests
-app.use(express.urlencoded({ extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.get('/', (req, res) => {
     res.render("index");
 });
+
 app.post('/convert-mp3', async (req, res) => {
-    const url = req.body.videoID;
-    let uniqueID;
-    if (url.includes('youtu.be')) {
-    uniqueID = (url.match(/youtu\.be\/([^?&]+)/) || [, null])[1];
-    } else {
-        uniqueID = (url.match(/[?&]v=([^&]*)/) || [, null])[1];
-    }
-    if(uniqueID==undefined || uniqueID==null || uniqueID== "") return res.render("index",{success:false,message: "Please enter a valid youtube url"});
-    else{
-        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
-            "method" : "GET",
-            "headers": {
-                "x-rapidapi-key" : process.env.API_KEY,
-                "x-rapidapi-host" : process.env.API_HOST
+    try {
+        const videoUrl = req.body.url;
+        const videoIdMatch = videoUrl.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+        if (!videoIdMatch) return res.status(400).send('Invalid YouTube URL');
+
+        const secretCookiePath = '/etc/secrets/cookies.txt';
+        const tempCookiePath = path.join(os.tmpdir(), 'cookies.txt');
+        fs.copyFileSync(secretCookiePath, tempCookiePath);
+
+        // Get video title
+        let videoTitle = await ytDlp(videoUrl, {
+            print: '%(title)s',
+            cookies: tempCookiePath
+        });
+
+        videoTitle = videoTitle.trim().replace(/[^\w\s]/gi, '').replace(/\s+/g, '_') || 'audio';
+        console.log(videoTitle);
+        res.setHeader('Content-Disposition', `attachment; filename="${videoTitle}.mp3"`);
+        res.setHeader('Content-Type', 'audio/mpeg');
+
+        // Stream audio directly using yt-dlp-exec
+        const audioStream = ytDlp.exec(videoUrl, {
+            cookies: tempCookiePath,
+            format: 'bestaudio',
+            output: '-', // stream to stdout
+            quiet: true
+        });
+
+        audioStream.stdout.pipe(res);
+
+        audioStream.stderr.on('data', (data) => {
+            console.error(`yt-dlp stderr: ${data}`);
+        });
+
+        audioStream.on('close', (code) => {
+            if (code !== 0) {
+                console.error(`yt-dlp process exited with code ${code}`);
+                res.status(500).send('Failed to download audio');
             }
         });
-        const response = await fetchAPI.json();
-        console.log(response);
-        if(response.status == "ok") return res.render("index",{success:true,song_title: response.title,song_link:response.link});
-        else{
-            const fetchAPI2 = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${uniqueID}`,{
-                "method" : "GET",
-                "headers": {
-                    "x-rapidapi-key" : process.env.API_KEY2,
-                    "x-rapidapi-host" : process.env.API_HOST
-                }
-            });
-        const response2 = await fetchAPI2.json();
-        console.log(response2);
-        if(response2.status == "ok") return res.render("index",{success:true,song_title: response2.title,song_link:response2.link});
-        else return res.render("index",{success:false,message:response.message==null?response.msg:response.message});
-        }
-    } 
+
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Something went wrong');
+    }
 });
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
 });
