@@ -20,5 +20,6 @@
     "node-fetch": "^2.7.0",
     "socket": "^0.14.67",
     "socket.io": "^4.8.1"
-  }
+  },
+  "type": "module"
 }
