@@ -3,6 +3,9 @@ import ytDlp from 'yt-dlp-exec';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import dotenv from 'dotenv';
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -25,10 +28,13 @@ app.post('/convert-mp3', async (req, res) => {
         const tempCookiePath = path.join(os.tmpdir(), 'cookies.txt');
         fs.copyFileSync(secretCookiePath, tempCookiePath);
 
+        const proxy = process.env.PROXY;
+
         // Get video title
         let videoTitle = await ytDlp(videoUrl, {
             print: '%(title)s',
-            cookies: tempCookiePath
+            cookies: tempCookiePath,
+            proxy: proxy
         });
 
         videoTitle = videoTitle.trim().replace(/[^\w\s]/gi, '').replace(/\s+/g, '_') || 'audio';
@@ -40,8 +46,9 @@ app.post('/convert-mp3', async (req, res) => {
         const audioStream = ytDlp.exec(videoUrl, {
             cookies: tempCookiePath,
             format: 'bestaudio',
-            output: '-', // stream to stdout
-            quiet: true
+            output: '-',
+            quiet: true,
+            proxy: proxy
         });
 
         audioStream.stdout.pipe(res);
