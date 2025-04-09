@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 });
 
 // Polling utility
-const pollForDownloadUrl = async (progressId, apiKey, maxAttempts = 10, delay = 2000) => {
+const pollForDownloadUrl = async (progressId, apiKey, maxAttempts = 100, delay = 3000) => {
     const progressUrl = `https://youtube-mp4-mp3-downloader.p.rapidapi.com/api/v1/progress?id=${progressId}`;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
