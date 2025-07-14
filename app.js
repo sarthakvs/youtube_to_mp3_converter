@@ -67,6 +67,7 @@ app.post('/convert-mp3', async (req, res) => {
         );
         const progressId = downloadInitResponse.data.progressId;
         const title = downloadInitResponse.data.title;
+        console.log(title);
         
         if (!progressId) {
             return res.status(500).send('Failed to get progress ID');
@@ -82,7 +83,7 @@ app.post('/convert-mp3', async (req, res) => {
 
         // Step 3: Stream the audio file to the client
         const audioStream = await axios({
-            method: 'get',
+            method: 'GET',
             url: downloadUrl,
             responseType: 'stream'
         });
