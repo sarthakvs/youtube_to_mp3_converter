@@ -29,8 +29,7 @@ const pollForDownloadUrl = async (progressId, apiKey, maxAttempts = 10, delay = 
         });
 
         const result = response.data;
-        console.log(result.progress);
-        if (result?.downloadUrl) {
+        if (result.downloadUrl!=undefined) {
             return result;
         }
 
@@ -99,6 +98,7 @@ app.post('/convert-mp3', async (req, res) => {
         audioStream.data.pipe(res);
 
     } catch (error) {
+        console.log(error.title);
         console.error('Error:', error?.response?.data || error.message);
         res.status(500).send('Something went wrong');
     }
