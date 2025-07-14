@@ -65,10 +65,8 @@ app.post('/convert-mp3', async (req, res) => {
                 }
             }
         );
-
-        const progressId = downloadInitResponse.data?.progressId;
-        const title = downloadInitResponse.data?.title;
-        console.log(title);
+        const progressId = downloadInitResponse.data.progressId;
+        const title = downloadInitResponse.data.title;
         
         if (!progressId) {
             return res.status(500).send('Failed to get progress ID');
