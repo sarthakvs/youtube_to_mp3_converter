@@ -20,21 +20,41 @@ app.get('/', (req, res) => {
 const pollForDownloadUrl = async (progressId, apiKey, maxAttempts = 10, delay = 8000) => {
     const progressUrl = `https://youtube-mp4-mp3-downloader.p.rapidapi.com/api/v1/progress?id=${progressId}`;
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const response = await axios.get(progressUrl, {
-            headers: {
-                'x-rapidapi-key': apiKey,
-                'x-rapidapi-host': 'youtube-mp4-mp3-downloader.p.rapidapi.com'
-            }
-        });
+    // WAIT 3 SECONDS BEFORE FIRST POLL
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-        const result = response.data;
-        console.log(result.progress);
-        if (result.finished==true) {
-            return result;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            const response = await axios.get(progressUrl, {
+                headers: {
+                    'x-rapidapi-key': apiKey,
+                    'x-rapidapi-host': 'youtube-mp4-mp3-downloader.p.rapidapi.com'
+                }
+            });
+
+            const result = response.data;
+            console.log(`Polling attempt ${attempt + 1}:`, result);
+
+            if (result?.downloadUrl) {
+                return result;
+            }
+
+            if (result?.message) {
+                console.warn(`Polling returned message: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.log(error);
+            const errData = error?.response?.data || error.message;
+            console.error(`Error during polling attempt ${attempt + 1}:`, errData);
+
+            // If 400 from server — don’t retry endlessly
+            if (error?.response?.status === 400) {
+                throw new Error("RapidAPI rejected progressId. Try again later.");
+            }
         }
 
-        await new Promise(resolve => setTimeout(resolve, delay)); // wait before next attempt
+        await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     throw new Error("Download URL not ready in time");
@@ -99,7 +119,6 @@ app.post('/convert-mp3', async (req, res) => {
         audioStream.data.pipe(res);
 
     } catch (error) {
-        console.log(error);
         console.error('Error:', error?.response?.data || error.message);
         res.status(500).send('Something went wrong');
     }
