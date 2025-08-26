@@ -11,3 +11,7 @@ Enter the URL of the YouTube video you want to convert, and the application will
 
 ## Installation
 There's no installation required for this web application. Simply visit the website and start converting YouTube videos to MP3 files hassle-free!
+if (attempt + 1 < RAPIDAPI_KEYS.length) {
+            return fetchWithFallback(videoID, attempt + 1);
+        }
+        return { success: false, message: "Network error, all keys failed" };
