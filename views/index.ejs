@@ -6,7 +6,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.cdnfonts.com/css/times-new-roman" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="/images/youtube2mp3icon.png" type="image/x-icon" >
+    <link rel="icon" href="/images/youtube2mp3icon.png" type="image/x-icon">
     <title>YT2MP3 Magic</title>
 </head>
 <!-- Google tag (gtag.js) -->
@@ -20,18 +20,62 @@
 </script>
 <body>
     <div class="top-container">
-        <form action="/convert-mp3" method = "POST" id="form">
-            <p>by   <a href="https://www.linkedin.com/in/sarthak-s-b622b022a/">sarthakvs</p></a>
-            <h1><i class="fa-brands fa-youtube"></i>Youtube to MP3 Magic</h1>
-            <h4>Enter Video url</h4>
-            <div>
-                <input type="text" name="url" placeholder="Video goes here"><button type="submit" id="convert-btn">Download!</button>
+        <form id="form">
+            <p>by <a href="https://www.linkedin.com/in/sarthak-s-b622b022a/" target="_blank">sarthakvs</a></p>
+            <h1><i class="fa-brands fa-youtube"></i> Youtube to MP3 Magic</h1>
+            <h4>Enter Video URL</h4>
+            <div class="input-row">
+                <input type="text" id="video-url" placeholder="Video goes here">
+                <button type="submit" id="convert-btn">Convert!</button>
             </div>
             <div>
-                <p><b> Please wait for 20-30 seconds after clicking the download button</b> </p>
+                <p><b>Please wait 20-30 seconds after clicking Convert</b></p>
+                <p id="status-message"></p>
             </div>
         </form>
+
+        <!-- Download button placeholder -->
+        <div id="download-section" style="display:none; margin-top:20px;">
+            <p id="song-title"></p>
+            <a id="download-btn" href="" download>Click here to Download MP3</a>
+        </div>
     </div>
 
+    <script>
+        const form = document.getElementById('form');
+        const videoUrlInput = document.getElementById('video-url');
+        const downloadSection = document.getElementById('download-section');
+        const downloadBtn = document.getElementById('download-btn');
+        const songTitle = document.getElementById('song-title');
+        const statusMessage = document.getElementById('status-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            downloadSection.style.display = 'none';
+            statusMessage.textContent = "Processing your request...";
+            const videoURL = videoUrlInput.value.trim();
+
+            try {
+                const response = await fetch('/convert-mp3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: videoURL })
+                });
+                const result = await response.json();
+
+                if(result.success){
+                    songTitle.textContent = result.title;
+                    downloadBtn.href = result.link;
+                    downloadSection.style.display = 'block';
+                    statusMessage.textContent = "Your MP3 is ready!";
+                } else {
+                    statusMessage.textContent = result.message || "Something went wrong";
+                }
+            } catch (err) {
+                statusMessage.textContent = "Network error or API failed.";
+                console.log(err);
+            }
+        });
+    </script>
 </body>
 </html>

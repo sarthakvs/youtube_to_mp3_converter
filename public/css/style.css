@@ -1,46 +1,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
- @import url('https://fonts.cdnfonts.com/css/times-new-roman');
-*{
+@import url('https://fonts.cdnfonts.com/css/times-new-roman');
+
+* {
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 }
 
-body{
+body {
   color: white;
-  overflow: hidden;
   font-family: 'Orbitron', sans-serif;
-}
-
-.top-container{
-  height: 50vh;
   background-color: red;
-}
-
-.bottom-container{
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 30px;
+  flex-direction: column;
+  text-align: center;
 }
 
-#form{
-  width: 600px;
-  height: 40vh;
-  margin: auto;
+.top-container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: red;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+#form {
+  width: 600px;
+  max-width: 95%;
+  display: flex;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 20px;
+  gap: 15px;
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 12px;
 }
 
-#form h1{
+#form h1 {
   font-style: italic;
   text-shadow: 1px 1px darkgray;
 }
 
-#form input{
+.input-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#form input {
   width: 300px;
   padding: 14px;
   border-top-left-radius: 15px;
@@ -51,7 +65,7 @@ body{
   box-shadow: 2px 2px 5px gray;
 }
 
-#form button{
+#form button {
   padding: 14px;
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
@@ -63,14 +77,46 @@ body{
   transition: 0.3s ease-out;
 }
 
-#form button:hover{
-  color:white;
-  background-color:  red;
-  border: 1px solid  red;
+#form button:hover {
+  color: white;
+  background-color: red;
+  border: 1px solid red;
   transform: scale(1.1);
 }
 
-.errors{
+#download-section {
+  margin-top: 20px;
+}
+
+#song-title {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+#download-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  color: white;
+  background-color: red;
+  border-radius: 5px;
+  text-decoration: none;
+  box-shadow: 2px 2px 5px gray;
+  font-style: normal;
+  cursor: pointer;
+  letter-spacing: 1px;
+  font-family: inherit;
+  border: 1px solid red;
+  transition: 0.3s ease-out;
+}
+
+#download-btn:hover {
+  color: black;
+  background-color: white;
+  border: 1px solid lightgray;
+  transform: scale(1.1);
+}
+
+.errors {
   width: 400px;
   margin: auto;
   display: flex;
@@ -85,7 +131,7 @@ body{
   border: 1px solid red;
 }
 
-.success{
+.success {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -93,47 +139,27 @@ body{
   gap: 10px;
   color: black;
   font-family: 'Times New Roman', sans-serif;
-                                                
 }
 
-#download-btn{
-  width: fit-content;
-  color: black;
-  padding: 12px;
-  color: white;
-  background-color: red;
-  border-radius: 5px;
-  text-decoration: none;
-  box-shadow: 2px 2px 5px gray;
-  font-style: normal;
-  cursor: pointer;
-  letter-spacing: 1px;
-  font-family: inherit;
-  border: 1px solid red;
-  transition: 0.3s ease-out;
-}
-
-#download-btn:hover{
-  color:black;
-  background-color:  white;
-  border: 1px solid  lightgray;
-  transform: scale(1.1);
-}
-
-@media(max-width:768px){
-  .bottom-container{
+@media(max-width:768px) {
+  #form {
     width: 90%;
-    margin: auto;
-  }
-
-  #form, .success{
-    text-align: center;
-    width: 100%;
   }
 }
 
-@media(max-width:480px){
-  #form input{
-    width: 50%;
+@media(max-width:480px) {
+  .input-row {
+    flex-direction: column;
+  }
+
+  #form input {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  #form button {
+    border-radius: 10px;
+    width: 100%;
   }
 }

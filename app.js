@@ -1,7 +1,7 @@
 import express from 'express';
-import axios from 'axios';
-import path from 'path';
+import fetch from 'node-fetch';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
@@ -12,118 +12,63 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.render("index");
-});
+// List of your API keys
+const RAPIDAPI_KEYS = [process.env.RAPIDAPI_KEY1, process.env.RAPIDAPI_KEY2];
+const fetchWithFallback = async (videoID, attempt = 0) => {
+    const keyIndex = attempt % RAPIDAPI_KEYS.length;
+    const apiKey = RAPIDAPI_KEYS[keyIndex];
 
-// Polling utility
-const pollForDownloadUrl = async (progressId, apiKey, maxAttempts = 10, delay = 8000) => {
-    const progressUrl = `https://youtube-mp4-mp3-downloader.p.rapidapi.com/api/v1/progress?id=${progressId}`;
-
-    // WAIT 3 SECONDS BEFORE FIRST POLL
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        try {
-            const response = await axios.get(progressUrl, {
-                headers: {
-                    'x-rapidapi-key': apiKey,
-                    'x-rapidapi-host': 'youtube-mp4-mp3-downloader.p.rapidapi.com'
-                }
-            });
-
-            const result = response.data;
-            console.log(`Polling attempt ${attempt + 1}:`, result);
-
-            if (result?.downloadUrl) {
-                return result;
+    try {
+        const fetchAPI = await fetch(`https://youtube-mp36.p.rapidapi.com/dl?id=${videoID}`, {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com'
             }
+        });
 
-            if (result?.message) {
-                console.warn(`Polling returned message: ${result.message}`);
+        const response = await fetchAPI.json();
+        console.log(response);
+
+        if (response.status === 'ok') {
+            return { success: true, title: response.title, link: response.link };
+        } else if (response.status === 'processing') {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return fetchWithFallback(videoID, attempt);
+        } else if (response.status === 'fail') {
+            if (attempt + 1 < RAPIDAPI_KEYS.length) {
+                return fetchWithFallback(videoID, attempt + 1);
+            } else {
+                return { success: false, message: response.msg || "All API keys failed." };
             }
-
-        } catch (error) {
-            console.log(error);
-            const errData = error?.response?.data || error.message;
-            console.error(`Error during polling attempt ${attempt + 1}:`, errData);
-
-            // If 400 from server — don’t retry endlessly
-            if (error?.response?.status === 400) {
-                throw new Error("RapidAPI rejected progressId. Try again later.");
-            }
+        } else {
+            return { success: false, message: "Unknown status from API" };
         }
-
-        await new Promise(resolve => setTimeout(resolve, delay));
+    } catch (err) {
+        if (attempt + 1 < RAPIDAPI_KEYS.length) {
+            return fetchWithFallback(videoID, attempt + 1);
+        }
+        return { success: false, message: "Network error, all keys failed" };
     }
-
-    throw new Error("Download URL not ready in time");
 };
 
 app.post('/convert-mp3', async (req, res) => {
-    try {
-        const videoUrl = req.body.url;
-        const videoIdMatch = videoUrl.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
-        if (!videoIdMatch) return res.status(400).send('Invalid YouTube URL');
+    const videoUrl = req.body.url;
+    const videoIdMatch = videoUrl.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
+    if (!videoIdMatch) return res.status(400).json({ success: false, message: 'Invalid YouTube URL' });
 
-        const videoId = videoIdMatch[1];
-        const rapidApiKey = process.env.RAPIDAPI_KEY;
+    const videoID = videoIdMatch[1];
+    const result = await fetchWithFallback(videoID);
 
-        // Step 1: Trigger conversion and get progressId
-        const downloadInitResponse = await axios.get(
-            `https://youtube-mp4-mp3-downloader.p.rapidapi.com/api/v1/download`,
-            {
-                params: {
-                    format: 'mp3',
-                    id: videoId,
-                    audioQuality: '128',
-                    addInfo: 'false'
-                },
-                headers: {
-                    'x-rapidapi-key': rapidApiKey,
-                    'x-rapidapi-host': 'youtube-mp4-mp3-downloader.p.rapidapi.com'
-                }
-            }
-        );
-        const progressId = downloadInitResponse.data.progressId;
-        const title = downloadInitResponse.data.title;
-        console.log(title);
-        
-        if (!progressId) {
-            return res.status(500).send('Failed to get progress ID');
-        }
-
-        // Step 2: Poll for the actual download URL
-        const result = await pollForDownloadUrl(progressId, rapidApiKey);
-        const { downloadUrl } = result;
-
-        if (!downloadUrl) {
-            return res.status(500).send('Failed to fetch audio download link');
-        }
-
-        // Step 3: Stream the audio file to the client
-        const audioStream = await axios({
-            method: 'GET',
-            url: downloadUrl,
-            responseType: 'stream'
-        });
-
-        const fileTitle = (title || 'audio')
-            .trim()
-            .replace(/[^\w\s]/gi, '')
-            .replace(/\s+/g, '_');
-
-        res.setHeader('Content-Disposition', `attachment; filename="${fileTitle}.mp3"`);
-        res.setHeader('Content-Type', 'audio/mpeg');
-
-        audioStream.data.pipe(res);
-
-    } catch (error) {
-        console.error('Error:', error?.response?.data || error.message);
-        res.status(500).send('Something went wrong');
+    if (result.success) {
+        return res.json({ success: true, title: result.title, link: result.link });
+    } else {
+        return res.json({ success: false, message: result.message });
     }
 });
-
+app.get('/', (req, res) => {
+    res.render("index");
+});
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
 });
