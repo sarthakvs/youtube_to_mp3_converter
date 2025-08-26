@@ -41,41 +41,51 @@
         </div>
     </div>
 
-    <script>
-        const form = document.getElementById('form');
-        const videoUrlInput = document.getElementById('video-url');
-        const downloadSection = document.getElementById('download-section');
-        const downloadBtn = document.getElementById('download-btn');
-        const songTitle = document.getElementById('song-title');
-        const statusMessage = document.getElementById('status-message');
+<script>
+    const form = document.getElementById('form');
+    const videoUrlInput = document.getElementById('video-url');
+    const downloadSection = document.getElementById('download-section');
+    const downloadBtn = document.getElementById('download-btn');
+    const songTitle = document.getElementById('song-title');
+    const statusMessage = document.getElementById('status-message');
+    const convertBtn = document.getElementById('convert-btn');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            downloadSection.style.display = 'none';
-            statusMessage.textContent = "Processing your request...";
-            const videoURL = videoUrlInput.value.trim();
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            try {
-                const response = await fetch('/convert-mp3', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: videoURL })
-                });
-                const result = await response.json();
+        // Disable button to prevent multiple requests
+        convertBtn.disabled = true;
+        convertBtn.textContent = "Processing...";
 
-                if(result.success){
-                    songTitle.textContent = result.title;
-                    downloadBtn.href = result.link;
-                    downloadSection.style.display = 'block';
-                    statusMessage.textContent = "Your MP3 is ready!";
-                } else {
-                    statusMessage.textContent = result.message || "Something went wrong";
-                }
-            } catch (err) {
-                statusMessage.textContent = "Network error or API failed.";
-                console.log(err);
+        downloadSection.style.display = 'none';
+        statusMessage.textContent = "Processing your request...";
+        const videoURL = videoUrlInput.value.trim();
+
+        try {
+            const response = await fetch('/convert-mp3', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: videoURL })
+            });
+            const result = await response.json();
+
+            if(result.success){
+                songTitle.textContent = result.title;
+                downloadBtn.href = result.link;
+                downloadSection.style.display = 'block';
+                statusMessage.textContent = "Your MP3 is ready!";
+            } else {
+                statusMessage.textContent = result.message || "Something went wrong";
             }
-        });
-    </script>
+        } catch (err) {
+            statusMessage.textContent = "Network error or API failed.";
+            console.log(err);
+        } finally {
+            // Re-enable button after response
+            convertBtn.disabled = false;
+            convertBtn.textContent = "Convert!";
+        }
+    });
+</script>
 </body>
 </html>

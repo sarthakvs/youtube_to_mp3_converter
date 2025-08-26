@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // List of your API keys
-const RAPIDAPI_KEYS = [process.env.RAPIDAPI_KEY1, process.env.RAPIDAPI_KEY2];
+const RAPIDAPI_KEYS = [process.env.RAPIDAPI_KEY1, process.env.RAPIDAPI_KEY2,process.env.RAPIDAPI_KEY3,process.env.RAPIDAPI_KEY4];
 
 const fetchWithFallback = async (videoID, attempt = 0, retries = 5, keyIndex = 0) => {
     if (retries <= 0) {
