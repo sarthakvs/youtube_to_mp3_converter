@@ -63,6 +63,7 @@ app.use(express.json());
 
 app.post('/convert-mp3', async (req, res) => {
     const videoUrl = req.body.url;
+    console.log(videoUrl);
     const videoIdMatch = videoUrl.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
     if (!videoIdMatch) return res.status(400).json({ success: false, message: 'Invalid YouTube URL' });
 
@@ -70,6 +71,7 @@ app.post('/convert-mp3', async (req, res) => {
      setTimeout(() => {
         res.json({ success: true, link: `${process.env.url}${videoID}` });
         }, 5000);    
+    console.log("Success");
     // const result = await fetchWithFallback(videoID);
 
     // if (result.success) {
