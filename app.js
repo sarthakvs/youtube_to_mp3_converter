@@ -27,6 +27,7 @@ app.post('/api/start', async (req, res) => {
         });
 
         if (response.data.progressId) {
+            console.log({title: response.data.title, link: req.body.url });
             res.json({ success: true, pid: response.data.progressId, title: response.data.title });
         } else {
             res.status(500).json({ error: 'No ID returned' });
