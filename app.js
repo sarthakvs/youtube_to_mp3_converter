@@ -1,7 +1,6 @@
-import express, { application } from 'express';
-import fetch from 'node-fetch';
+import express from 'express';
+import axios from 'axios';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const app = express();
@@ -9,81 +8,60 @@ const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // Necessary for parsing the hidden form
 app.use(express.json());
 
-// List of your API keys
-// const RAPIDAPI_KEYS = [process.env.RAPIDAPI_KEY1, process.env.RAPIDAPI_KEY2,process.env.RAPIDAPI_KEY3,process.env.RAPIDAPI_KEY4];
+const { apiKey, apiHost, apiUrl, progUrl } = process.env;
 
-// const fetchWithFallback = async (videoID, attempt = 0, retries = 5, keyIndex = 0) => {
-//     if (retries <= 0) {
-//         return { success: false, message: "Max retries reached, try again later." };
-//     }
+app.get('/', (req, res) => res.render("index"));
 
-//     const apiKey = RAPIDAPI_KEYS[keyIndex];
-//     console.log(`🔑 Attempt ${attempt} | Using key[${keyIndex}] (${apiKey.slice(0,3)}...)`);
+// --- STEP 1: START ---
+app.post('/api/start', async (req, res) => {
+    try {
+        const videoIdMatch = req.body.url.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
+        if (!videoIdMatch) return res.status(400).json({ error: 'Invalid URL' });
 
-//     try {
-//         const fetchAPI = await fetch(`https://tube-mp31.p.rapidapi.com/api/json`, {
-//             method: 'POST',
-//             headers: {
-//                 'x-rapidapi-key': apiKey,
-//                 'x-rapidapi-host': 'tube-mp31.p.rapidapi.com',
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify({ videoId: videoID })
-            
-//         });
+        const response = await axios.get(`${apiUrl}`, {
+            params: { format: 'mp3', id: videoIdMatch[1], audioQuality: '128' },
+            headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': apiHost }
+        });
 
-//         const response = await fetchAPI.json();
-//         console.log(`📡 Response from key[${keyIndex}]:`, response);
-
-//         if (response.status === 'success') {
-//             return { success: true, title: response.title, link: response.result.dlurl };
-//         }
-
-//         if (response.status === 'processing') {
-//             // stay on same key
-//             console.log(`⏳ Still processing... retrying with same key[${keyIndex}]`);
-//             await new Promise(r => setTimeout(r, 2000));
-//             return fetchWithFallback(videoID, attempt + 1, retries - 1, keyIndex);
-//         }
-
-//         // if status is anything else (fail, error, quota, etc.) → switch key
-//         const nextKeyIndex = (keyIndex + 1) % RAPIDAPI_KEYS.length;
-//         console.log(`⚠️ Unexpected status "${response.status}". Switching to key[${nextKeyIndex}]`);
-//         return fetchWithFallback(videoID, attempt + 1, retries - 1, nextKeyIndex);
-
-//     } catch (err) {
-//         console.error(`❌ Error with key[${keyIndex}]:`, err.message);
-//         const nextKeyIndex = (keyIndex + 1) % RAPIDAPI_KEYS.length;
-//         return fetchWithFallback(videoID, attempt + 1, retries - 1, nextKeyIndex);
-//     }
-// };
-
-app.post('/convert-mp3', async (req, res) => {
-    const videoUrl = req.body.url;
-    console.log(videoUrl);
-    const videoIdMatch = videoUrl.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
-    if (!videoIdMatch) return res.status(400).json({ success: false, message: 'Invalid YouTube URL' });
-
-    const videoID = videoIdMatch[1];
-     setTimeout(() => {
-        res.json({ success: true, link: `${process.env.url}${videoID}` });
-        }, 5000);    
-    console.log("Success");
-    // const result = await fetchWithFallback(videoID);
-
-    // if (result.success) {
-    // } else {
-    //     return res.json({ success: false, message: result.message });
-    // }
+        if (response.data.progressId) {
+            res.json({ success: true, pid: response.data.progressId, title: response.data.title });
+        } else {
+            res.status(500).json({ error: 'No ID returned' });
+        }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/', (req, res) => {
-    res.render("index");
+// --- STEP 2: CHECK STATUS (POLLING) ---
+app.get('/api/status', async (req, res) => {
+    try {
+        const { data } = await axios.get(`${progUrl}?id=${req.query.id}`, {
+            headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': apiHost }
+        });
+        // Just pass the API response straight to the client
+        res.json(data); 
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
+// --- STEP 3: STREAM FILE (Using POST to hide URL) ---
+app.post('/api/stream', async (req, res) => {
+    // We use req.body so the URL is NOT visible in the browser address bar
+    const { downloadUrl, title } = req.body;
+
+    try {
+        const stream = await axios({ method: 'GET', url: downloadUrl, responseType: 'stream' });
+        
+        const safeTitle = (title || 'audio').replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+        res.setHeader('Content-Disposition', `attachment; filename="${safeTitle}.mp3"`);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        
+        stream.data.pipe(res);
+    } catch (e) { 
+        console.error(e);
+        res.send("Error fetching file stream."); 
+    }
 });
+
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));

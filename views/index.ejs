@@ -9,85 +9,92 @@
     <link rel="icon" href="/images/youtube2mp3icon.png" type="image/x-icon">
     <title>YT2MP3 Magic</title>
 </head>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1516896657325862"
-     crossorigin="anonymous"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9VYKQ8W52L"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-9VYKQ8W52L');
-</script>
 <body>
     <div class="top-container">
-        <form id="form">
-            <p>by <a href="https://www.linkedin.com/in/sarthak-s-b622b022a/" target="_blank">sarthakvs</a></p>
-            <h1><i class="fa-brands fa-youtube"></i> Youtube to MP3 Magic</h1>
-            <h4>Enter Video URL</h4>
-            <div class="input-row">
-                <input type="text" id="video-url" placeholder="Video goes here">
-                <button type="submit" id="convert-btn">Convert!</button>
-            </div>
-            <div>
-                <p><b>Please wait 20-30 seconds after clicking Convert</b></p>
-                <p id="status-message"></p>
+        <!-- Note: onsubmit handles the logic -->
+        <div class="creator-credit">
+                <p>Made by <a href="https://www.linkedin.com/in/sarthak-s-b622b022a/" target="_blank">sarthakvs <i class="fa-brands fa-linkedin"></i></a></p>
+        </div>
+        <form onsubmit="startProcess(event)">
+            <h1>Youtube to MP3</h1>
+            <input type="text" id="urlInput" placeholder="Paste Link Here" required>
+            <button type="submit" id="dlBtn">Download</button>
+            
+            <div id="progress-area">
+                <div class="bar-bg"><div class="bar-fg" id="bar">0%</div></div>
+                <p id="status-txt">Starting...</p>
             </div>
         </form>
-
-        <!-- Download button placeholder -->
-        <div id="download-section" style="display:none; margin-top:20px;">
-            <p id="song-title"></p>
-            <a id="download-btn" href="" download>Click here to Download MP3</a>
-        </div>
     </div>
+    
 
-<script>
-    const form = document.getElementById('form');
-    const videoUrlInput = document.getElementById('video-url');
-    const downloadSection = document.getElementById('download-section');
-    const downloadBtn = document.getElementById('download-btn');
-    const songTitle = document.getElementById('song-title');
-    const statusMessage = document.getElementById('status-message');
-    const convertBtn = document.getElementById('convert-btn');
+    <!-- HIDDEN FORM FOR DOWNLOADING (Magic happens here) -->
+    <form id="hidden-dl-form" action="/api/stream" method="POST" style="display: none;">
+        <input type="hidden" name="downloadUrl" id="hiddenUrl">
+        <input type="hidden" name="title" id="hiddenTitle">
+    </form>
+    <script>
+        async function startProcess(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('urlInput').value;
+            const btn = document.getElementById('dlBtn');
+            const area = document.getElementById('progress-area');
+            const bar = document.getElementById('bar');
+            const txt = document.getElementById('status-txt');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+            // UI Reset
+            btn.disabled = true;
+            area.style.display = 'block';
+            bar.style.width = '0%';
 
-        // Disable button to prevent multiple requests
-        convertBtn.disabled = true;
-        convertBtn.textContent = "Processing...";
+            try {
+                // 1. Request Start
+                const startRes = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ url })
+                });
+                const startData = await startRes.json();
+                
+                if(!startData.success) throw new Error(startData.error);
 
-        downloadSection.style.display = 'none';
-        statusMessage.textContent = "Processing your request...";
-        const videoURL = videoUrlInput.value.trim();
+                // 2. Start Loop
+                const interval = setInterval(async () => {
+                    const pollRes = await fetch(`/api/status?id=${startData.pid}`);
+                    const pollData = await pollRes.json();
+                    
+                    // Calculate Percentage (API gives 0-1000)
+                    const progress = pollData.progress || 0;
+                    const percent = Math.floor(progress / 10);
+                    
+                    bar.style.width = percent + '%';
+                    bar.innerText = percent + '%';
+                    txt.innerText = "Converting...";
 
-        try {
-            const response = await fetch('/convert-mp3', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: videoURL })
-            });
-            const result = await response.json();
+                    // 3. CHECK FOR COMPLETION
+                    // If progress is 1000 OR downloadUrl exists
+                    if (pollData.downloadUrl) {
+                        clearInterval(interval);
+                        txt.innerText = "Done! Downloading...";
+                        bar.style.background = "#2196F3"; // Blue
 
-            if(result.success){
-                songTitle.textContent = result.title;
-                downloadBtn.href = result.link;
-                downloadSection.style.display = 'block';
-                statusMessage.textContent = "Your MP3 is ready!";
-            } else {
-                statusMessage.textContent = result.message || "Something went wrong";
+                        // 4. TRIGGER INSTANT DOWNLOAD VIA HIDDEN FORM
+                        document.getElementById('hiddenUrl').value = pollData.downloadUrl;
+                        document.getElementById('hiddenTitle').value = startData.title;
+                        document.getElementById('hidden-dl-form').submit();
+
+                        // Reset button shortly after
+                        setTimeout(() => { btn.disabled = false; btn.innerText = "Download Again"; }, 3000);
+                    }
+                }, 1000); // Check every 1 second
+
+            } catch (err) {
+                console.error(err);
+                txt.innerText = "Error: " + err.message;
+                btn.disabled = false;
             }
-        } catch (err) {
-            statusMessage.textContent = "Network error or API failed.";
-            console.log(err);
-        } finally {
-            // Re-enable button after response
-            convertBtn.disabled = false;
-            convertBtn.textContent = "Convert!";
         }
-    });
-</script>
+    </script>
 </body>
 </html>

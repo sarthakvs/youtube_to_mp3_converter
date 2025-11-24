@@ -30,7 +30,8 @@ body {
   padding: 20px;
 }
 
-#form {
+/* Targeted 'form' directly since your HTML tag is just <form> */
+form {
   width: 600px;
   max-width: 95%;
   display: flex;
@@ -39,127 +40,124 @@ body {
   flex-direction: column;
   gap: 15px;
   background: rgba(255,255,255,0.05);
-  padding: 20px;
+  padding: 30px 20px;
   border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-#form h1 {
+form h1 {
   font-style: italic;
   text-shadow: 1px 1px darkgray;
+  margin-bottom: 10px;
 }
 
-.input-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#form input {
-  width: 300px;
+/* Input Styles */
+form input {
+  width: 100%;
+  max-width: 400px;
   padding: 14px;
-  border-top-left-radius: 15px;
-  border-bottom-left-radius: 15px;
+  border-radius: 15px; /* Fully rounded since it is stacked */
   border: 1px solid lightgray;
   font-family: inherit;
   outline: none;
   box-shadow: 2px 2px 5px gray;
+  text-align: center;
 }
 
-#form button {
-  padding: 14px;
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
+/* Button Styles */
+form button {
+  padding: 14px 40px;
+  border-radius: 15px;
   border: 1px solid lightgray;
   background-color: whitesmoke;
   cursor: pointer;
   font-family: inherit;
   box-shadow: 2px 3px 5px gray;
   transition: 0.3s ease-out;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
-#form button:hover {
+form button:hover {
   color: white;
   background-color: red;
-  border: 1px solid red;
-  transform: scale(1.1);
+  border: 1px solid white;
+  transform: scale(1.05);
 }
 
-#download-section {
-  margin-top: 20px;
+/* Disabled state for when downloading */
+form button:disabled {
+  background-color: #ccc;
+  color: #666;
+  border-color: #999;
+  cursor: not-allowed;
+  transform: none;
 }
 
-#song-title {
-  margin-bottom: 10px;
-  font-weight: 600;
+/* --- PROGRESS BAR STYLES (Mapped to your HTML IDs) --- */
+#progress-area { 
+  display: none; 
+  width: 100%; 
+  max-width: 400px;
+  margin-top: 20px; 
 }
-
-#download-btn {
-  display: inline-block;
-  padding: 12px 20px;
-  color: white;
-  background-color: red;
-  border-radius: 5px;
-  text-decoration: none;
-  box-shadow: 2px 2px 5px gray;
-  font-style: normal;
-  cursor: pointer;
+        
+.bar-bg { 
+  width: 100%; 
+  background: #ddd; 
+  height: 25px; 
+  border-radius: 15px; 
+  overflow: hidden; 
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+        
+.bar-fg { 
+  height: 100%; 
+  width: 0%; 
+  background: #4CAF50; /* Green */
+  text-align: center; 
+  color: white; 
+  line-height: 25px; 
+  transition: width 0.3s ease; 
+  font-size: 14px;
+  font-weight: 700;
+}
+        
+#status-txt { 
+  font-weight: bold; 
+  margin-top: 10px; 
+  color: white; 
+  text-shadow: 1px 1px 2px black;
+  font-size: 0.9rem;
+}
+.creator-credit {
+  margin-top: 25px;
+  font-size: 1.1rem;
   letter-spacing: 1px;
-  font-family: inherit;
-  border: 1px solid red;
-  transition: 0.3s ease-out;
 }
 
-#download-btn:hover {
-  color: black;
-  background-color: white;
-  border: 1px solid lightgray;
+.creator-credit p {
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.creator-credit a {
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+  margin-left: 5px;
+}
+
+.creator-credit a:hover {
+  border-bottom: 2px solid white;
   transform: scale(1.1);
+  display: inline-block;
 }
-
-.errors {
-  width: 400px;
-  margin: auto;
-  display: flex;
-  justify-content: center;
-  align-items:center;
-  flex-direction: column;
-  gap: 10px;
-  border-radius: 5px;
-  padding: 12px;
-  color: red;
-  background-color: #ffe6e6;
-  border: 1px solid red;
-}
-
-.success {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 10px;
-  color: black;
-  font-family: 'Times New Roman', sans-serif;
-}
-
+/* Responsive */
 @media(max-width:768px) {
-  #form {
+  form {
     width: 90%;
-  }
-}
-
-@media(max-width:480px) {
-  .input-row {
-    flex-direction: column;
-  }
-
-  #form input {
-    width: 100%;
-    border-radius: 10px;
-    margin-bottom: 10px;
-  }
-
-  #form button {
-    border-radius: 10px;
-    width: 100%;
   }
 }
